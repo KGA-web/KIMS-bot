@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIMS AI Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00a3dd;
+            --secondary: #0056b3;
+            --bg-light: #f4f7fb;
+            --white: #ffffff;
+            --text-dark: #333333;
+            --bot-msg: #eef2f7;
+            --user-msg: #00a3dd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #chat-widget {
+            width: 100%;
+            max-width: 450px;
+            height: 80vh;
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Header */
+        .chat-header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .chat-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: white;
+            padding: 2px;
+        }
+
+        .header-info h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .header-info p {
+            margin: 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Chat Body */
+        #chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .bot-message {
+            background: var(--bot-msg);
+            color: var(--text-dark);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .user-message {
+            background: var(--user-msg);
+            color: var(--white);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        /* Lead Form inside Chat */
+        .lead-form {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 10px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .lead-form h4 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        .lead-form input, .lead-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .lead-form button {
+            width: 100%;
+            padding: 10px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        #user-input {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        #send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #send-btn:hover {
+            background: var(--secondary);
+        }
+
+        /* Quick Chips */
+        .quick-chips {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px 10px;
+            overflow-x: auto;
+        }
+
+        .chip {
+            background: #e1f5fe;
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid var(--primary);
+        }
+
+        /* Typing Indicator */
+        .typing {
+            font-style: italic;
+            font-size: 12px;
+            color: #888;
+            margin-left: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-widget">
+    <div class="chat-header">
+        <img src="https://kimsbengaluru.edu.in/assets/KIMS/KGI_Logo_Light.png" alt="KIMS Logo">
+        <div class="header-info">
+            <h2>KIMS AI Assistant</h2>
+            <p><i class="fas fa-circle" style="color: #4CAF50; font-size: 8px;"></i> Online | Ask anything</p>
+        </div>
+    </div>
+
+    <div id="chat-messages">
+        <div class="message bot-message">Hello! Welcome to KIMS Bengaluru. I am your AI assistant. How can I help you with admissions or course details today?</div>
+    </div>
+
+    <div id="typing-indicator" class="typing">KIMS Bot is typing...</div>
+
+    <div class="quick-chips">
+        <div class="chip" onclick="quickSearch('BBA Admission')">BBA Admission</div>
+        <div class="chip" onclick="quickSearch('Forensic Science')">Forensic Science</div>
+        <div class="chip" onclick="quickSearch('Placement Stats')">Placement Stats</div>
+        <div class="chip" onclick="quickSearch('MBA Fees')">MBA Fees</div>
+    </div>
+
+    <div class="chat-input-area">
+        <input type="text" id="user-input" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+        <button id="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+
+<script>
+    const messagesContainer = document.getElementById('chat-messages');
+    const userInput = document.getElementById('user-input');
+    const typingIndicator = document.getElementById('typing-indicator');
+    
+    // Config: Replace this with your Vercel/Local API URL
+    const API_URL = "http://localhost:8000/api/chat"; 
+    
+    // Config: Your Google Spreadsheet Web App URL (to be created from your link)
+    const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzz-PA-qV0Y9Y8R-xQvG6Wv3vXwO_k0_u-0_u-0/exec"; 
+
+    let chatHistory = [];
+    let messageCount = 0;
+    let leadCaptured = false;
+
+    function appendMessage(role, content) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${role}-message`;
+        msgDiv.innerHTML = content;
+        messagesContainer.appendChild(msgDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        chatHistory.push({ role: role === 'bot' ? 'assistant' : 'user', content: content });
+    }
+
+    async function sendMessage() {
+        const text = userInput.value.trim();
+        if (!text) return;
+
+        appendMessage('user', text);
+        userInput.value = '';
+        messageCount++;
+
+        // Show typing indicator
+        typingIndicator.style.display = 'block';
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ messages: chatHistory })
+            });
+
+            const data = await response.json();
+            typingIndicator.style.display = 'none';
+            appendMessage('bot', data.response);
+
+            // Trigger lead form after 2 messages
+            if (messageCount >= 2 && !leadCaptured) {
+                showLeadForm();
+            }
+
+        } catch (error) {
+            typingIndicator.style.display = 'none';
+            appendMessage('bot', "I'm having trouble connecting to my brain right now. Please try again or contact +91 81472 15707.");
+        }
+    }
+
+    function handleKeyPress(e) {
+        if (e.key === 'Enter') sendMessage();
+    }
+
+    function quickSearch(term) {
+        userInput.value = term;
+        sendMessage();
+    }
+
+    function showLeadForm() {
+        const formDiv = document.createElement('div');
+        formDiv.className = 'message bot-message lead-form';
+        formDiv.innerHTML = `
+            <h4>Admission Inquiry 2026</h4>
+            <p>Please share your details for a personalized counselor call.</p>
+            <input type="text" id="lead-name" placeholder="Full Name" required>
+            <input type="tel" id="lead-phone" placeholder="Mobile Number" required>
+            <select id="lead-course">
+                <option value="BBA">BBA</option>
+                <option value="MBA">MBA</option>
+                <option value="BCA">BCA</option>
+                <option value="Forensic">Forensic Science</option>
+            </select>
+            <button onclick="submitLead()">Submit Details</button>
+        `;
+        messagesContainer.appendChild(formDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        leadCaptured = true;
+    }
+
+    async function submitLead() {
+        const name = document.getElementById('lead-name').value;
+        const phone = document.getElementById('lead-phone').value;
+        const course = document.getElementById('lead-course').value;
+
+        if (!name || !phone) {
+            alert("Please fill all fields");
+            return;
+        }
+
+        // Logic to send to Google Sheets
+        try {
+            await fetch(SHEETS_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    phone: phone,
+                    course: course,
+                    timestamp: new Date().toLocaleString()
+                })
+            });
+            
+            const form = document.querySelector('.lead-form');
+            form.innerHTML = "<h4>Thank You!</h4><p>Our counselor will contact you shortly.</p>";
+        } catch (e) {
+            alert("Submission failed. Try again.");
+        }
+    }
+</script>
+
+</body>
+</html>
