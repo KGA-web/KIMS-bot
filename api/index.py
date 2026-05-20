@@ -18,7 +18,7 @@ app.add_middleware(
 # API Configuration
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = os.environ.get("GROQ_MODEL", "llama3-70b-8192")
+MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 KIMS_SYSTEM = """You are KAIA, the professional AI assistant for Koshys Institute of Management Studies (KIMS), Bengaluru.
 Your goal is to assist students and parents with admission queries, course details, campus life, and placements.
