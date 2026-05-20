@@ -1,100 +1,61 @@
-# KGI Chatbot - Setup Guide
+# KAIA — Koshys AI Assistant (KIMS Bengaluru) Setup Guide
 
 ## Overview
-- **Platform**: Website Widget (kgi.edu.in)
+- **Platform**: Website Widget (kimsbengaluru.edu.in)
 - **Data Storage**: Google Sheets
-- **Tech**: Vercel + Next.js + OpenAI (free tier)
-- **Cost**: FREE (OpenAI $5 credit = thousands of chats)
+- **Tech**: Vercel + FastAPI + Groq (Llama 3.1 70B)
+- **Cost**: Extremely Low/Free (using Groq free tier or low-cost API)
 
 ---
 
-## Step 1: Push to GitHub (Already Done ✓)
+## Step 1: Deploy Backend on Vercel
 
----
-
-## Step 2: Deploy on Vercel
-
-1. Go to: https://vercel.com
-2. Sign up with GitHub
-3. Click "Add New" → "Project"
-4. Import "koshys-bot" from GitHub
-5. Click "Deploy"
-
----
-
-## Step 3: Configure Environment Variables
-
-In Vercel dashboard, go to Settings → Environment Variables and add:
+1. Connect your GitHub repository (`KIMS_Bot_Repo`) to Vercel.
+2. Ensure the following environment variables are set in the Vercel Dashboard ($Settings -> Environment Variables$):
 
 | Variable | Value |
 |----------|-------|
-| `OPENAI_API_KEY` | Your OpenAI key (see below) |
-| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | `kgi-947@koshys-bot.iam.gserviceaccount.com` |
-| `GOOGLE_PRIVATE_KEY` | Your private key (see below) |
-| `GOOGLE_SHEET_ID` | Your sheet ID (see below) |
+| `GROQ_API_KEY` | Your Groq API key from console.groq.com |
+| `GROQ_MODEL` | `llama-3.1-70b-versatile` (or preferred model) |
 
 ---
 
-## Step 4: Get OpenAI API Key
+## Step 2: Setup Google Sheets for Lead Capture
 
-1. Go to: https://platform.openai.com
-2. Sign up (free $5 credit)
-3. API Keys → Create new secret key
-4. Copy the key
-5. Add to Vercel as `OPENAI_API_KEY`
-
----
-
-## Step 5: Setup Google Sheets
-
-1. Create new sheet: https://sheet.new
-2. Rename to "KGI Enquiries"
-3. Row 1 headers:
-   ```
-   A1: Timestamp
-   B1: Name
-   C1: Type
-   D1: Phone
-   E1: Course
-   F1: Inquiry
-   G1: Status
-   ```
-4. Click Share → Add: `kgi-947@koshys-bot.iam.gserviceaccount.com`
-5. Get Sheet ID from URL (between /d/ and /edit)
-6. Add to Vercel as `GOOGLE_SHEET_ID`
+1. Create a new Google Sheet (https://sheet.new).
+2. Go to `Extensions` -> `Apps Script`.
+3. Paste the contents of [google_apps_script.gs](google_apps_script.gs).
+4. Update the `SPREADSHEET_URL` variable in the script with your sheet's URL.
+5. Click **Deploy** -> **New Deployment**.
+   - **Type**: Web App
+   - **Execute as**: Me
+   - **Who has access**: Anyone
+6. Copy the **Web App URL**.
+7. In `widget.js`, update the `SHEETS_URL` with this copied URL.
 
 ---
 
-## Step 6: Get Private Key
+## Step 3: Add Widget to Website
 
-From your downloaded JSON file (koshys-bot-c4c482fa16bd.json):
-- Copy the `private_key` value
-- Add to Vercel as `GOOGLE_PRIVATE_KEY`
+Add the following script tag before the closing `</footer>` or `</body>` tag on your website:
 
----
-
-## Step 7: Add Widget to Website
-
-In kgi.edu.in HTML, add before `</body>`:
 ```html
-<script src="https://your-vercel-app.vercel.app/widget.js"></script>
+<script src="assets/js/widget.js"></script>
 ```
-Or embed the ChatWidget component in your Next.js page.
+
+Ensure `widget.js` is placed in the `assets/js/` directory on your server.
 
 ---
 
-## Features Included
+## Features
 
-- AI-powered chat with KGI knowledge base
-- Auto-collects: Name, Phone, User Type (Student/Parent), Course
-- Saves all enquiries to Google Sheets
-- Quick buttons: Call 808 866 0000, Apply Now
-- Fee queries → Contact button (no pricing shown)
+- **2026 Ready**: Updated with details for BVA Interior Design, B.Com Logistics, and Forensic Science.
+- **Lead Capture**: Auto-triggers a contact form after 2 user messages.
+- **Voice Support**: Integrated speech-to-text for easy interaction.
+- **Glassmorphism UI**: Beautiful, responsive, and professional design.
 
 ---
 
 ## Need Help?
-
-- Phone: 808 866 0000
-- Email: info@kgi.edu.in
-- Website: kgi.edu.in
+- **Email**: info@kgi.edu.in
+- **Admin**: +91 81472 15707

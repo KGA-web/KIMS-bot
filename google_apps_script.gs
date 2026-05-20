@@ -21,13 +21,15 @@ function doPost(e) {
     
     var data = JSON.parse(e.postData.contents);
     
-    // Header Structure: 
-    // Timestamp | Name | Phone | Course | Source | Metadata
+    // Header Structure mirroring KGI standards: 
+    // Timestamp | Name | Type | Phone | Course | Source | Metadata
     sheet.appendRow([
       new Date(), 
       data.name, 
+      data.type || "Student",
       data.phone, 
       data.course, 
+      data.inquiry || "n/a",
       data.source || "KAIA AI Bot",
       data.timestamp || ""
     ]);

@@ -5,7 +5,7 @@
 
 (function() {
     // --- Configuration ---
-    const API_URL = "https://kims-bot-repo.vercel.app/api/chat"; // Update with your actual Vercel URL
+    const API_URL = "https://kims-bot.vercel.app/api/chat"; 
     const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzhWZXx8Yog5WrZn-gOxyCezbxpJkNVozTIUBU2K1Mu_wHQGjk32KJm0BVXh1jTfFTPwQ/exec";
     
     // --- State ---
@@ -414,16 +414,40 @@
         formDiv.className = 'kaia-form-bubble';
         formDiv.innerHTML = `
             <h4>📋 Register Interest 2026</h4>
-            <input type="text" id="kaia-lf-name" placeholder="Full Name" required>
-            <input type="tel" id="kaia-lf-phone" placeholder="Mobile Number" required>
-            <select id="kaia-lf-course">
-                <option value="BBA">BBA</option>
-                <option value="MBA">MBA</option>
-                <option value="BCA">BCA</option>
-                <option value="BCom">B.Com</option>
-                <option value="Forensic">Forensic Science</option>
-            </select>
-            <button class="kaia-form-btn" onclick="submitLead(this)">Get Call Back</button>
+            <div style="margin-bottom: 10px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:4px;">YOUR NAME *</label>
+                <input type="text" id="kaia-lf-name" placeholder="Full Name" required>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:4px;">YOU ARE A *</label>
+                <select id="kaia-lf-type">
+                    <option value="Student">Student</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:4px;">MOBILE NUMBER *</label>
+                <input type="tel" id="kaia-lf-phone" placeholder="Mobile Number" required>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:4px;">COURSE INTERESTED IN</label>
+                <select id="kaia-lf-course">
+                    <option value="BBA">BBA</option>
+                    <option value="BCA">BCA</option>
+                    <option value="B.Com">B.Com</option>
+                    <option value="B.Com Logistics">B.Com Logistics</option>
+                    <option value="BVA Interior Design">BVA Interior Design</option>
+                    <option value="Forensic Science">Forensic Science</option>
+                    <option value="MBA">MBA</option>
+                    <option value="MCA">MCA</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:4px;">ANY SPECIFIC QUESTION?</label>
+                <textarea id="kaia-lf-inquiry" placeholder="Ask about fees, hostel, etc." style="width:100%; padding:10px; border:1px solid #ddd; border-radius:8px; font-size:13px; font-family:inherit; min-height:60px;"></textarea>
+            </div>
+            <button class="kaia-form-btn" onclick="submitLead(this)">Submit & Get Call Back</button>
         `;
         area.appendChild(formDiv);
         area.scrollTop = area.scrollHeight;
@@ -433,8 +457,10 @@
     // Global function for form submission
     window.submitLead = async function(btn) {
         const name = document.getElementById('kaia-lf-name').value;
+        const type = document.getElementById('kaia-lf-type').value;
         const phone = document.getElementById('kaia-lf-phone').value;
         const course = document.getElementById('kaia-lf-course').value;
+        const inquiry = document.getElementById('kaia-lf-inquiry').value;
 
         if (!name || !phone) {
             alert("Please fill in your name and phone number.");
@@ -451,8 +477,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: name,
+                    type: type,
                     phone: phone,
                     course: course,
+                    inquiry: inquiry,
                     timestamp: new Date().toLocaleString(),
                     source: "KAIA AI Bot"
                 })
@@ -461,7 +489,7 @@
         } catch (e) {
             alert("Submission failed. Please try again.");
             btn.disabled = false;
-            btn.innerText = "Get Call Back";
+            btn.innerText = "Submit & Get Call Back";
         }
     };
 
