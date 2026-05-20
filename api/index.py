@@ -1,12 +1,10 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
 import httpx
 import json
 
-app = FastAPI()
+app = FastAPI(title="KIMS AI Backend")
 
 # Enable CORS for the KIMS website
 app.add_middleware(
@@ -17,78 +15,94 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROQ_API_KEY = "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"
+# API Configuration
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = "llama-3.1-70b-versatile"
+MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-70b-versatile")
 
-SYSTEM_PROMPT = """You are KIMS Bot, the official AI assistant for Koshys Institute of Management Studies (KIMS) Bengaluru.
-Your goal is to assist students with admission queries, course details, campus life, and more.
+KIMS_SYSTEM = """You are KAIA, the professional AI assistant for Koshys Institute of Management Studies (KIMS), Bengaluru.
+Your goal is to assist students and parents with admission queries, course details, campus life, and placements.
 
 INSTITUTION DETAILS:
 - Name: Koshys Institute of Management Studies (KIMS)
-- Location: Bengaluru, Karnataka, India.
+- Established: 2003 (23+ years of excellence)
+- Location: Hennur-Bagalur Road, Kannur P.O., Bengaluru, Karnataka 562149.
 - Affiliation: Bangalore City University (BCU).
 - Approval: AICTE New Delhi.
 
-MAJOR COURSES:
-- BBA (Bachelor of Business Administration): General, Aviation, and Industry Integrated.
-- MBA (Master of Business Administration): Fintech, Data Science, Strategic Leadership.
-- BCA (Bachelor of Computer Applications): AI, Cloud Computing, Cybersecurity.
-- B.Com (Bachelor of Commerce): Logistics, Supply Chain Management.
-- B.Sc Forensic Science: 3-year program with specialized lab training.
-- BVA (Bachelor of Visual Arts): Animation, Multimedia, Graphics.
+CORE DEPARTMENTS & COURSES:
+1. Management: BBA (General, Aviation, Industry Integrated), MBA (Fintech, Data Science, Strategic Leadership).
+2. Commerce: B.Com (General, Logistics & Supply Chain Management).
+3. Technology: BCA (AI, Cloud Computing, Cybersecurity), MCA.
+4. Arts & Design: BVA (Animation & Multimedia, Graphic Design, Interior & Spatial Design - 4 Year programs).
+5. Science: B.Sc Forensic Science (3 Years with lab training).
 
-KEY HIGHLIGHTS:
-- 100% Placement assistance.
-- Industry-integrated certification programs.
-- Corporate partnerships with Amazon, Deloitte, TCS, Wipro.
-- Average Package: 5.2 LPA | Highest Package: 12.5 LPA.
+COURSE HIGHLIGHTS:
+- BVA Interior & Spatial Design: Focuses on space planning, furniture design, and industrial exposure.
+- B.Com Logistics: Industry integrated with certifications in SAP, Tally, and Advanced Excel.
+- Placements: 100% assistance, 150+ partners (Amazon, Deloitte, Wipro). Avg Package 5.2 LPA.
 
-GUIDELINES:
-1. Be professional, helpful, and welcoming.
-2. If you don't know an answer, suggest the user contact the admission office at +91 81472 15707.
-3. Keep responses concise and use bullet points for lists.
-4. For fee queries, mention that fees are competitive and suggest filling out the inquiry form in the chat for the exact structure.
+RULES:
+1. Be professional, warm, and helpful.
+2. For fee questions: "For detailed fee structures and scholarship options, please contact our admission counselor at +91 81472 15707."
+3. Keep responses concise (2-4 sentences). Use bullet points for lists.
+4. If unsure, suggest visiting the campus or calling the admission team.
+5. End with a helpful follow-up question.
 """
 
-class Message(BaseModel):
-    role: str
-    content: str
+async def get_ai_response(messages: list) -> str:
+    groq_messages = [{"role": "system", "content": KIMS_SYSTEM}]
+    
+    # Limit history to last 10 messages
+    for msg in messages[-10:]:
+        if isinstance(msg, dict) and "content" in msg:
+            role = "user" if msg.get("role") == "user" else "assistant"
+            groq_messages.append({"role": role, "content": msg.get("content", "")})
 
-class ChatRequest(BaseModel):
-    messages: List[Message]
+    payload = {
+        "model": MODEL,
+        "messages": groq_messages,
+        "temperature": 0.7,
+        "max_tokens": 500
+    }
 
-@app.post("/api/chat")
-async def chat(request: ChatRequest):
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
     try:
-        # Prepare payload for Groq
-        groq_messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        # Limit history to last 10 messages
-        groq_messages.extend([m.dict() for m in request.messages[-10:]])
-
-        payload = {
-            "model": MODEL,
-            "messages": groq_messages,
-            "temperature": 0.7,
-            "max_tokens": 1024
-        }
-
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
-
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(GROQ_URL, json=payload, headers=headers)
-            
             if response.status_code != 200:
-                raise HTTPException(status_code=response.status_code, detail="Groq API Error")
+                return "I'm having a technical moment. Please try again or call 81472 15707."
             
             data = response.json()
-            return {"response": data['choices'][0]['message']['content']}
+            return data['choices'][0]['message']['content']
+    except Exception:
+        return "I'm currently adjusting my brain. Please try again later or call 81472 15707."
 
+@app.get("/")
+async def root():
+    return {"status": "KIMS AI Running", "v": "2.5"}
+
+@app.get("/api")
+async def api_health():
+    return {"api": "active", "groq_configured": bool(GROQ_API_KEY)}
+
+@app.post("/api/chat")
+async def chat(request: Request):
+    try:
+        body = await request.json()
+        messages = body.get("messages", [])
+        # Support both 'message' (reference bot) and 'messages' (original widget) formats
+        if not messages and body.get("message"):
+            messages = [{"role": "user", "content": body.get("message")}]
+            
+        response_text = await get_ai_response(messages)
+        return {"response": response_text, "reply": response_text} # Success parity with both formats
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return {"response": "Brain freeze! Please try again.", "reply": "Brain freeze!"}
 
 if __name__ == "__main__":
     import uvicorn
