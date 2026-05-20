@@ -18,7 +18,7 @@ app.add_middleware(
 # API Configuration
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "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")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-70b-versatile")
+MODEL = os.environ.get("GROQ_MODEL", "llama3-70b-8192")
 
 KIMS_SYSTEM = """You are KAIA, the professional AI assistant for Koshys Institute of Management Studies (KIMS), Bengaluru.
 Your goal is to assist students and parents with admission queries, course details, campus life, and placements.
@@ -75,7 +75,12 @@ async def get_ai_response(messages: list) -> str:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(GROQ_URL, json=payload, headers=headers)
             if response.status_code != 200:
-                return "I'm having a technical moment. Please try again or call 81472 15707."
+                try:
+                    err_data = response.json()
+                    err_msg = err_data.get("error", {}).get("message", "Unknown Groq Error")
+                except:
+                    err_msg = response.text[:100]
+                return f"Technical moment (Status {response.status_code}: {err_msg}). Please try again."
             
             data = response.json()
             return data['choices'][0]['message']['content']
