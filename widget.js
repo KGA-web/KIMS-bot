@@ -399,8 +399,8 @@
             showTyping(false);
             appendMessage('bot', data.response);
 
-            // Trigger lead form
-            if (messageCount >= 2 && !leadCollected) {
+            // Trigger lead form after the very first message
+            if (messageCount === 1 && !leadCollected) {
                 showLeadForm();
             }
         } catch (e) {
