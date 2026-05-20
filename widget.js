@@ -305,7 +305,7 @@
         container.innerHTML = `
             <div id="kaia-chat-window">
                 <div class="kaia-header">
-                    <img src="https://kimsbengaluru.edu.in/assets/KIMS/KGI_Logo_Light.png" alt="KAIA">
+                    <img src="/assets/img/Ai.png" alt="KAIA">
                     <div>
                         <h3>KAIA — Koshys AI Assistant</h3>
                         <div class="kaia-status">Online &bull; Always here to help</div>
@@ -345,6 +345,11 @@
         input.onkeypress = (e) => { if (e.key === 'Enter') handleSend(); };
 
         appendMessage('bot', "Namaskara! 🙏 I'm KAIA, your Koshys AI assistant. Ask me about courses, admissions, fees, or campus life!");
+
+        // Auto-popup after 3 seconds
+        setTimeout(() => {
+            if (!isOpen) toggleChat();
+        }, 3000);
     }
 
     function toggleChat() {
