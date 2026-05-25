@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KAIA — Koshys AI Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --kims-red: #ab191e; --kims-red-dark: #8b1418; --kims-red-light: #c82126;
+  --kims-navy: #002e5b; --kims-navy-light: #004080;
+  --white: #FFFFFF; --text-dark: #1C1C1C; --text-muted: #6B6B6B;
+  --border: #E5E5E5; --bubble-bot: #F1F3F6; --cream: #FEFAF4;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+body { font-family: var(--font-body); background: linear-gradient(135deg,#f8f9fa,#e9ecef); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:16px; }
+
+.chat-widget { background:white; border-radius:24px; overflow:hidden; box-shadow:0 30px 80px rgba(0,0,0,0.12); border:1px solid var(--border); display:flex; flex-direction:column; width:450px; height:750px; position:relative; }
+
+/* Header */
+.chat-header { background:var(--kims-navy); padding:20px 24px; display:flex; align-items:center; gap:14px; position:relative; z-index:10; }
+.header-logo { width:50px; height:50px; border-radius:50%; background:white; padding:4px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:2px solid rgba(255,255,255,0.2); }
+.header-logo img { width:100%; height:auto; }
+.header-info { flex:1; }
+.header-info h3 { font-family:var(--font-display); font-size:17px; color:white; font-weight:600; margin-bottom:2px; }
+.status-dot { display:flex; align-items:center; gap:6px; }
+.dot { width:8px; height:8px; background:#4ADE80; border-radius:50%; box-shadow: 0 0 0 2px rgba(74,222,128,0.2); }
+.status-dot span { font-size:12px; color:rgba(255,255,255,0.8); font-weight:400; }
+
+/* Chips */
+.quick-chips { padding:12px 18px; background:var(--bubble-bot); border-bottom:1px solid var(--border); display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+.quick-chips::-webkit-scrollbar { display:none; }
+.chip { background:white; border:1px solid #ddd; border-radius:30px; padding:6px 14px; font-size:12px; font-weight:500; color:var(--kims-navy); cursor:pointer; white-space:nowrap; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.chip:hover { background:var(--kims-red); color:white; border-color:var(--kims-red); transform:translateY(-1px); }
+
+/* Messages */
+.messages-area { flex:1; overflow-y:auto; padding:24px 20px; display:flex; flex-direction:column; gap:16px; background:#FFF; scrollbar-width:thin; }
+.msg-row { display:flex; gap:10px; align-items:flex-end; }
+.msg-row.user-row { flex-direction:row-reverse; }
+.msg-avatar { width:32px; height:32px; border-radius:50%; background:var(--kims-red); display:flex; align-items:center; justify-content:center; font-size:13px; color:white; font-weight:700; flex-shrink:0; }
+.bubble { max-width:85%; padding:14px 18px; border-radius:20px; font-size:14px; line-height:1.6; position:relative; }
+.bubble.bot { background:var(--bubble-bot); color:var(--text-dark); border-bottom-left-radius:4px; }
+.bubble.user { background:var(--kims-red); color:white; border-bottom-right-radius:4px; box-shadow: 0 4px 15px rgba(171, 25, 30, 0.15); }
+.time { font-size:10px; color:var(--text-muted); margin-top:5px; }
+.msg-wrap { display:flex; flex-direction:column; }
+.msg-wrap.right { align-items:flex-end; }
+
+/* Lead Form */
+.lead-form { background:white; border:2px solid var(--kims-red); border-radius:24px; padding:24px; margin:10px 0; box-shadow:0 10px 30px rgba(0,0,0,0.05); }
+.lead-form h4 { font-family:var(--font-display); color:var(--kims-navy); font-size:18px; margin-bottom:8px; }
+.lead-form p { font-size:13px; color:var(--text-muted); margin-bottom:20px; }
+.form-field { margin-bottom:15px; }
+.form-field label { display:block; font-size:11px; font-weight:700; color:var(--kims-red); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.05em; }
+.form-field input, .form-field select { width:100%; padding:12px; border:1px solid #ddd; border-radius:12px; font-size:14px; outline:none; transition:border-color 0.2s; }
+.form-field input:focus { border-color:var(--kims-red); }
+.submit-btn { width:100%; background:var(--kims-red); color:white; border:none; border-radius:12px; padding:15px; font-weight:600; cursor:pointer; transition:background 0.2s; }
+.submit-btn:hover { background:var(--kims-red-dark); }
+
+/* Input */
+.input-section { padding:15px 20px; background:white; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+.input-box { flex:1; background:var(--bubble-bot); border:none; border-radius:30px; padding:12px 20px; font-size:14px; font-family:var(--font-body); outline:none; }
+.send-btn { width:45px; height:45px; border-radius:50%; background:var(--kims-red); color:white; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; transition:0.2s; }
+.send-btn:hover { transform:scale(1.05); background:var(--kims-red-dark); }
+
+/* Animations */
+@keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.msg-row { animation:slideIn 0.3s ease-out forwards; }
+</style>
+</head>
+<body>
+
+<div class="chat-widget">
+    <div class="chat-header">
+        <div class="header-logo">
+            <img src="assets/img/Ai.png" alt="KIMS">
+        </div>
+        <div class="header-info">
+            <h3>KAIA — Koshys AI</h3>
+            <div class="status-dot"><div class="dot"></div><span>Online | Here to help</span></div>
+        </div>
+    </div>
+
+    <div class="quick-chips" style="display:none">
+        <button class="chip" onclick="quickMsg('Interior Design')">🏠 Interior Design</button>
+        <button class="chip" onclick="quickMsg('B.Com Logistics')">🚛 Logistics</button>
+        <button class="chip" onclick="quickMsg('Forensic Science')">🔬 Forensic Science</button>
+        <button class="chip" onclick="quickMsg('MBA Admissions')">🎓 MBA</button>
+    </div>
+
+    <div class="messages-area" id="msgArea"></div>
+
+    <div class="input-section">
+        <input type="text" id="userInput" class="input-box" placeholder="Ask about admissions, courses..." onkeypress="handleKey(event)">
+        <button class="send-btn" onclick="sendMsg()">➤</button>
+    </div>
+</div>
+
+<script>
+const BACKEND_URL = "https://kims-bot.vercel.app/api/chat"; 
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbzhWZXx8Yog5WrZn-gOxyCezbxpJkNVozTIUBU2K1Mu_wHQGjk32KJm0BVXh1jTfFTPwQ/exec";
+
+let history = [];
+let msgCount = 0;
+let leadState = 'name';
+let leadData = { name: '', phone: '', course: '' };
+
+window.onload = () => {
+    appendBot("Hello! 🙏 I'm KAIA, your Koshys AI assistant.<br><br><b>Step 1 of 3:</b> May I know your name?");
+};
+
+async function sendMsg(text) {
+    const input = document.getElementById('userInput');
+    const val = text || input.value.trim();
+    if (!val) return;
+    if (!text) input.value = '';
+
+    appendUser(val);
+    msgCount++;
+
+    if (leadState === 'name') {
+        leadData.name = val;
+        leadState = 'phone';
+        appendBot(`Thank you, ${val}! 😊<br><br><b>Step 2 of 3:</b> Could you please share your mobile number with country code? (e.g., +91 9876543210)`);
+        return;
+    }
+
+    if (leadState === 'phone') {
+        leadData.phone = val;
+        leadState = 'course';
+        appendBot(`Got it! 📱<br><br><b>Step 3 of 3:</b> Which course are you interested in?`);
+        showCourseChips();
+        return;
+    }
+
+    if (leadState === 'course') {
+        leadData.course = val;
+        leadState = 'done';
+        await submitLeadData();
+        document.querySelector('.quick-chips').style.display = 'flex';
+        appendBot(`Thank you, ${leadData.name}! 🎉 Your details have been registered. A counselor will reach out to you soon.<br><br>Now, feel free to ask me anything about KIMS!`);
+        return;
+    }
+
+    history.push({ role: 'user', content: val });
+
+    try {
+        const res = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: history })
+        });
+        const data = await res.json();
+        appendBot(data.response);
+        history.push({ role: 'assistant', content: data.response });
+    } catch (e) {
+        appendBot("I'm connecting to my brain. Please call 81472 15707 in the meantime!");
+    }
+}
+
+function appendUser(txt) {
+    const area = document.getElementById('msgArea');
+    area.innerHTML += `<div class="msg-row user-row"><div class="msg-wrap right"><div class="bubble user">${txt}</div></div></div>`;
+    area.scrollTop = area.scrollHeight;
+}
+
+function appendBot(txt) {
+    const area = document.getElementById('msgArea');
+    area.innerHTML += `<div class="msg-row"><div class="msg-avatar">K</div><div class="msg-wrap"><div class="bubble bot">${txt.replace(/\n/g, '<br>')}</div></div></div>`;
+    area.scrollTop = area.scrollHeight;
+}
+
+function showCourseChips() {
+    const area = document.getElementById('msgArea');
+    const chips = document.createElement('div');
+    chips.style.cssText = 'display:flex; gap:8px; padding:6px 0 10px 0; flex-wrap:wrap;';
+    chips.innerHTML = `
+        <button class="chip" onclick="quickMsg('BBA')">BBA</button>
+        <button class="chip" onclick="quickMsg('BCA')">BCA</button>
+        <button class="chip" onclick="quickMsg('B.Com')">B.Com</button>
+        <button class="chip" onclick="quickMsg('B.Com Logistics')">B.Com Logistics</button>
+        <button class="chip" onclick="quickMsg('BVA Interior Design')">BVA Interior Design</button>
+        <button class="chip" onclick="quickMsg('Forensic Science')">Forensic Science</button>
+        <button class="chip" onclick="quickMsg('MBA')">MBA</button>
+        <button class="chip" onclick="quickMsg('MCA')">MCA</button>
+    `;
+    area.appendChild(chips);
+    area.scrollTop = area.scrollHeight;
+}
+
+async function submitLeadData() {
+    try {
+        await fetch(SHEETS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ name: leadData.name, phone: leadData.phone, course: leadData.course, source: 'KIMS Web AI' })
+        });
+    } catch(e) {
+        // Silently handle
+    }
+}
+
+function quickMsg(t) { sendMsg(t); }
+function handleKey(e) { if (e.key === 'Enter') sendMsg(); }
+</script>
+
+</body>
+</html>
